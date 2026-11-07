@@ -31,6 +31,26 @@ v2 已知限制：沒有完整生物清單與死亡檔案、沒有個體生命�
 
 Notion 依主題區分研究、基因模型、v1／v2 現況、v3 需求、RWD 設計、測試與待確認事項。GitHub 管理程式碼及修改歷史。**不要將 v3 的規劃頁視為已上線功能。**
 
+## 測試與變更驗證
+
+`main` 的 GitHub Actions 在每次推送與 Pull Request 時執行兩類檢查：
+
+- `tests/baseline.test.mjs`：以 Node.js 檢查 HTML、嵌入式 JavaScript 語法與主要元件。
+- `tests/browser_regression.py`：以 Playwright 驅動 Chromium，實際操作 v2 的基因預覽、五種外型、空箱及示範、生成、基因檢視、餵食、暫停、容量上限與響應式排版。
+
+本機執行（需 Python 及 Playwright Chromium）：
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m playwright install chromium
+python -m unittest discover -s tests -p 'browser_*.py' -v
+node --test tests/baseline.test.mjs
+```
+
+如本機已安裝 Chromium，也可設定 `CHROMIUM_EXECUTABLE` 指向其執行檔。瀏覽器測試會載入正式 `index.html` 的完整文字並執行，**不會修改生產程式**。
+
+**覆蓋範圍限制：** 目前並未以決定性測試驗證長時間覓食／繁殖／死亡的完整事件鏈，也未驗證所有觸控拖曳手勢。v3 動工前應持續補強這些高風險行為。
+
 ## 技術與來源
 
 此重建採用 HTML、CSS、Canvas 與原生 JavaScript。現有公式是自行設計的可追蹤映射，不等於原作 1999 年的完整 3D 網格變形演算法。
