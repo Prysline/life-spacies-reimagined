@@ -37,6 +37,7 @@ Notion 依主題區分研究、基因模型、v1／v2 現況、v3 需求、RWD �
 
 - `tests/baseline.test.mjs`：以 Node.js 檢查 HTML、嵌入式 JavaScript 語法與主要元件。
 - `tests/browser_regression.py`：以 Playwright 驅動 Chromium，實際操作 v2 的基因預覽、五種外型、空箱及示範、生成、基因檢視、餵食、暫停、容量上限與響應式排版。
+- `tests/browser_ecology.py`：以測試期間的可重現條件驅動**正式 v2 生態更新函式**，確認大小寫食性、進食補能、能量耗損、食物過期、兩種死亡原因、交配條件、交叉／突變／冷卻，以及實際滑鼠拖曳複製。測試只在記憶體中加入檢查介面，不修改 `index.html`。
 
 本機執行（需 Python 及 Playwright Chromium）：
 
@@ -49,7 +50,7 @@ node --test tests/baseline.test.mjs
 
 如本機已安裝 Chromium，也可設定 `CHROMIUM_EXECUTABLE` 指向其執行檔。瀏覽器測試會載入正式 `index.html` 的完整文字並執行，**不會修改生產程式**。
 
-**覆蓋範圍限制：** 目前並未以決定性測試驗證長時間覓食／繁殖／死亡的完整事件鏈，也未驗證所有觸控拖曳手勢。v3 動工前應持續補強這些高風險行為。
+**覆蓋範圍限制：** 生態測試使用可重現的人工初始狀態與固定時間步長，已檢查真實的進食、交配與死亡規則，但不等於驗證自然隨機環境中長時間的完整生態演化；觸控拖曳、跨瀏覽器及視覺回歸仍需補強。
 
 ## 技術與來源
 
