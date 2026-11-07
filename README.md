@@ -31,6 +31,25 @@
 
 Notion 依主題區分研究、基因模型、版本現況、v3 需求、RWD 設計、測試與待確認事項。v3 第一階段的資料與實驗邊界請見 [Notion｜10 第一階段資料契約](https://app.notion.com/p/411b4185273f8184adcafdbd949950ef)。GitHub 管理程式碼及修改歷史。**不要把尚未實作的 v3 清單與詳細檢視功能視為已上線。**
 
+## 網站建置與 GitHub Pages
+
+網站公開部署使用 **GitHub Actions**，而不是從儲存庫根目錄直接發布：
+
+1. 現有 `.github/workflows/baseline.yml` 在每次 PR／push 執行 Node.js 基準、產物驗證和 Chromium 回歸測試。
+2. 當且僅當 `main` 的 push 測試成功，`.github/workflows/deploy.yml` 收到成功結果後，使用**相同提交 SHA**重新執行 `node scripts/build.mjs`。
+3. 僅將 `dist/` 上傳為 Pages artifact 並部署到 `github-pages` 環境。PR 不會部署，測試失敗也不會部署。
+
+目前 `scripts/build.mjs` 會將正式 `index.html` 原樣複製到 `dist/index.html`，並建立 `dist/.nojekyll`。之後拆成 JS／CSS 模組時，只需更新建置腳本，仍由 `dist/` 統一部署，並保留離線單檔 HTML 產出能力。**切勿直接修改 `dist/`；它是被 Git 忽略的建置產物。**
+
+本機檢查：
+
+```bash
+node scripts/build.mjs
+node --test tests/*.test.mjs
+```
+
+**首次啟用須由儲存庫管理者在** [Settings → Pages](https://github.com/Prysline/life-spacies-reimagined/settings/pages) **將 Build and deployment → Source 設成 `GitHub Actions`**。只有 workflow 存在，不能視為 Pages 已啟用。可在 [Actions](https://github.com/Prysline/life-spacies-reimagined/actions) 檢視部署作業；部署成功後預期網站為 `https://prysline.github.io/life-spacies-reimagined/`。以實際成功的 `github-pages` 部署紀錄為準。
+
 ## 測試與變更驗證
 
 `main` 的 GitHub Actions 在每次推送與 Pull Request 時執行兩類檢查：

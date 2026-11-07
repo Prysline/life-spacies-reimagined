@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: '22'
       - name: Run baseline smoke tests
-        run: node --test tests/baseline.test.mjs
+        run: node --test tests/*.test.mjs
 
   browser:
     runs-on: ubuntu-latest

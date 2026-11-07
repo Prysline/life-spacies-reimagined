@@ -1,0 +1,66 @@
+name: Deploy GitHub Pages
+
+# Reuse existing CI: publish only after Baseline checks succeeded on a main push.
+# Pull requests and failed test runs never deploy.
+on:
+  workflow_run:
+    workflows:
+      - Baseline checks
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site artifact
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch == 'main' &&
+          github.event.workflow_run.head_repository.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+    steps:
+      - name: Check out the exact tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build dist
+        run: node scripts/build.mjs
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload only dist to GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    name: Publish site
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy artifact to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
