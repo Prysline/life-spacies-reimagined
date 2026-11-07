@@ -123,7 +123,7 @@ let creaturePreviewTrigger=null,creaturePreviewInteractive=false;
 function hideCreaturePreview(){if(creaturePreviewTrigger)creaturePreviewTrigger.removeAttribute('aria-describedby');creaturePreviewTrigger=null;creaturePreviewInteractive=false;creaturePreview.hidden=true;creaturePreview.replaceChildren();}
 function showCreaturePreview(trigger,interactive=false){const id=Number(trigger?.dataset.creatureId),r=creatureRecords.get(id);if(!r){hideCreaturePreview();return;}
  if(creaturePreviewTrigger&&creaturePreviewTrigger!==trigger)creaturePreviewTrigger.removeAttribute('aria-describedby');creaturePreviewTrigger=trigger;creaturePreviewInteractive=interactive;creaturePreview.hidden=false;creaturePreview.replaceChildren();
- creaturePreview.setAttribute('role',interactive?'dialog':'tooltip');if(interactive)creaturePreview.setAttribute('aria-label',`生物 #${id} 摘要`);else{creaturePreview.removeAttribute('aria-label');trigger.setAttribute('aria-describedby',creaturePreview.id);}
+ creaturePreview.setAttribute('role',interactive?'dialog':'tooltip');if(interactive){creaturePreview.setAttribute('aria-label',`生物 #${id} 摘要`);trigger.removeAttribute('aria-describedby');}else{creaturePreview.removeAttribute('aria-label');trigger.setAttribute('aria-describedby',creaturePreview.id);}
  const title=document.createElement('div');title.className='creature-preview-title';title.textContent=`生物 #${id} · ${MORPHS[r.traits.morph]}`;
  const gene=document.createElement('div');gene.className='creature-preview-gene';gene.textContent=`基因：${r.gene}`;
  const info=document.createElement('div');info.className='creature-preview-meta';info.textContent=`第 ${r.generation} 代 · ${r.status==='living'?'存活':(r.deathCause==='starvation'?'飢餓死亡':'壽命結束')}`;
