@@ -60,16 +60,83 @@
 .global-history-pager{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap}
 .global-history-pager button{flex:0 1 auto}
 .global-history-empty{color:#a9bfd2;font-size:12px;margin:10px 0}
+
+/* v3 第三階段／第一批：實際來源順序以養殖箱與個體研究優先，CSS 僅負責不同裝置的空間分配。 */
+.archive-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.archive-heading h2{margin-bottom:10px}.back-to-stage{display:none;color:#c9efe4;text-decoration:none;border:1px solid #477482;border-radius:8px;padding:9px 12px;min-height:40px;font-size:12px;background:#1a3948}.back-to-stage:focus-visible{outline:2px solid #9ce8ce;outline-offset:2px}
+:root{scroll-padding-top:14px}
+.layout{max-width:1710px;display:grid;grid-template-columns:minmax(245px,290px) minmax(0,1fr) minmax(280px,350px);grid-template-areas:"brand brand brand" "tools stage directory" "tools below directory" "tools inspector inspector" "footer footer footer";align-items:start;column-gap:14px;row-gap:14px;padding:16px}
+.app-brand{grid-area:brand;padding:0 4px 1px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.app-brand h1{margin:0;font-size:24px}.app-brand p{flex:1 1 260px;margin:0;max-width:660px}
+.sidebar{grid-area:tools;display:flex;flex-direction:column;gap:13px;min-width:0}
+.content{display:contents}
+.content>.stage{grid-area:stage;min-width:0}
+.content>.below{grid-area:below;min-width:0;margin:0;grid-template-columns:repeat(2,minmax(0,1fr))}
+.content>.archive{grid-area:directory;min-width:0}
+.inspector{grid-area:inspector;min-width:0}
+.foot{grid-area:footer}
+.quick-nav{display:none}
+/* 左側工具與右側名冊保留在可操作的欄位，不讓長歷史把中央養殖箱擠走。 */
+.content>.archive .archive-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+.content>.archive .archive-search{grid-column:1/-1}
+.content>.archive .archive-grid{grid-template-columns:minmax(0,1fr)}
+.content>.archive .archive-list{max-height:230px;min-height:90px}
+.content>.archive .archive-detail{max-height:min(70vh,720px);overflow:auto;overscroll-behavior:contain}
+#world{height:clamp(400px,59vh,660px);min-height:360px}
+@media(min-width:1200px){.content>.archive{position:sticky;top:12px}}
+@media (min-width:768px) and (max-width:1199px){
+ .layout{grid-template-columns:minmax(0,1fr) minmax(260px,310px);grid-template-areas:"brand brand" "stage directory" "below directory" "tools tools" "inspector inspector" "footer footer";gap:12px;padding:13px}
+ .content>.below{grid-template-columns:minmax(0,1fr)}
+ .sidebar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;align-items:start}
+ .sidebar>.panel{height:100%}
+ #world{height:clamp(390px,53vh,600px)}
+ .content>.archive .archive-list{max-height:180px}
+ .content>.archive .archive-detail{max-height:520px}
+ .archive-specimen canvas{height:215px}
+}
+@media(max-width:767px){
+ .layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"brand" "quick" "stage" "below" "directory" "tools" "inspector" "footer";gap:10px;padding:10px}
+ .app-brand{display:block;padding:4px 5px}.app-brand h1{font-size:23px;margin:5px 0}.app-brand p{font-size:11px;line-height:1.6}
+ .quick-nav{grid-area:quick;display:grid;gap:9px;min-width:0}
+ .back-to-stage{display:inline-flex;align-items:center;justify-content:center}
+ .quick-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .quick-stats span{display:flex;justify-content:space-between;align-items:baseline;gap:5px;padding:9px 10px;border:1px solid #315169;border-radius:9px;background:#12293b;font-size:11px;color:#bdd3e0}
+ .quick-stats strong{font:700 18px ui-monospace,monospace;color:#b9f0df}
+ .quick-links{display:flex;gap:6px;overflow-x:auto;padding:1px 0 4px;overscroll-behavior-inline:contain}
+ .quick-link{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 12px;border:1px solid #40617a;border-radius:9px;background:#183447;color:#dbf2ff;font-size:12px;font-weight:650;text-decoration:none}
+ .quick-link:focus-visible{outline:2px solid #b7f4df;outline-offset:2px}
+ .sidebar{display:flex;flex-direction:column;gap:10px}
+ .content>.below{grid-template-columns:minmax(0,1fr);margin:0}
+ .content>.archive{position:static}
+ .content>.archive .archive-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .content>.archive .archive-list{max-height:210px}
+ .content>.archive .archive-detail{max-height:none;overflow:visible}
+ .panel{padding:13px}
+ #world{height:clamp(340px,51dvh,550px);min-height:340px}
+ .hint{font-size:10px}
+ .inspector .labtop{grid-template-columns:minmax(0,1fr)}
+ .inspector .traits{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .archive-specimen canvas{height:222px}
+}
+@media(max-width:359px){.quick-stats span{padding:8px 6px;font-size:10px}.quick-stats strong{font-size:16px}}
 </style>
 </head>
 <body>
 <main class="layout">
-<aside class="sidebar">
-<header class="brand"><div class="tag">互動人工生命・可檢視基因重建版</div><h1>生命空間 II</h1><p>由文字生成生命，讓字母成為食物。此版本新增可檢查的基因映射、空箱起始及差異化外型。</p></header>
-<section class="panel"><h2>01　基因輸入 <span class="sub">即時預覽，不會直接出生</span></h2><label class="lbl" for="geneText">基因文字（ASCII 英文字母、數字或符號）</label><textarea id="geneText" maxlength="220" spellcheck="false">Hello world</textarea><div id="geneWarning" class="alert" role="status"></div><div class="sample"><button type="button" data-example="AqMZkyLpRST">浮游型範例</button><button type="button" data-example="BqMZkyLpRST">甲殼型範例</button><button type="button" data-example="CqMZkyLpRST">星刺型範例</button><button type="button" data-example="DqMZkyLsRST">節環型範例</button><button type="button" data-example="EqMZkyLpRST">翼葉型範例</button></div><div class="buttons"><button id="createBtn" class="btn primary">生成一隻生物</button><button id="randomBtn" class="btn ghost">隨機基因</button></div><p class="desc">第 1 個有效字元決定輪廓，第 2 至 11 個分別控制比例、肢體、色彩等特徵；後續字元提供修飾。下方觀察室會逐字列出實際作用。</p></section>
-<section class="panel"><h2>02　餵食文字</h2><label class="lbl" for="feedText">投放字母（大小寫有別）</label><input id="feedText" type="text" maxlength="130" value="Hello world" spellcheck="false"><div class="buttons"><button id="feedBtn" class="btn">投放文字</button><button id="scatterBtn" class="btn ghost">隨機補食</button></div><div class="buttons"><button id="clearFoodBtn" type="button" class="btn ghost">清空所有飼料（保留生物）</button></div><p class="desc">生物只能吃下自己基因包含的相同字元。空白不會成為食物。清空飼料只移除養殖箱內字母，不會重置生物或生命紀錄；自動投餵若仍開啟，稍後可能再次出現食物。</p></section>
-<section class="panel"><h2>03　環境控制</h2><div class="stats"><div><strong id="living">0</strong><span>存活生物</span></div><div><strong id="foodCount">0</strong><span>字母食物</span></div><div><strong id="births">0</strong><span>累計出生</span></div></div><div class="switchrow"><label><input type="checkbox" id="autoFeed" checked> 自動少量投餵</label><span class="readout" id="speedVal">1.0 倍</span></div><div class="switchrow"><span class="sub">模擬速度</span><input type="range" id="simSpeed" min="0.5" max="3" value="1" step="0.5" aria-label="模擬速度"></div><div style="margin-top:14px"><label for="startMode" class="lbl">重置時的初始模式</label><select id="startMode"><option value="demo">示範生態（3 隻生物）</option><option value="empty">空箱（0 隻生物、0 個字母）</option></select></div><div class="buttons"><button id="pauseBtn" class="btn ghost">暫停</button><button id="resetBtn" class="btn ghost">依模式重置</button></div><div class="buttons"><button id="clearBtn" class="btn danger">立即完全清空養殖箱</button><button id="demoBtn" class="btn ghost">載入示範</button></div><p class="desc">清空會同時移除生物、食物、粒子與累計紀錄。箱內沒有生物時，自動投餵不會產生新字母。</p></section>
-</aside>
+<header class="brand app-brand"><div class="tag">互動人工生命・可檢視基因重建版</div><h1>生命空間 II</h1><p>由文字生成生命，讓字母成為食物。此版本新增可檢查的基因映射、空箱起始及差異化外型。</p></header>
+<nav class="quick-nav" aria-label="養殖與工具快速導覽">
+  <div class="quick-stats" aria-label="養殖箱即時統計">
+    <span>存活 <strong id="quickLiving">0</strong></span>
+    <span>飼料 <strong id="quickFood">0</strong></span>
+    <span>出生 <strong id="quickBirths">0</strong></span>
+  </div>
+  <div class="quick-links">
+    <a href="#world" class="quick-link">養殖箱</a>
+    <a href="#genePanel" class="quick-link">生成</a>
+    <a href="#feedPanel" class="quick-link">餵食</a>
+    <a href="#archivePanel" class="quick-link">生物名冊</a>
+    <a href="#inspector" class="quick-link">基因觀察</a>
+  </div>
+</nav>
 <section class="content">
 <div class="stage"><div class="stagehead"><span id="indicator" class="live">● 模擬進行中</span><div class="hint">點選生物：檢查基因<br>拖曳生物：複製個體<br>點空白：投放字母</div></div><canvas id="world" tabindex="0" aria-label="可點擊與拖曳的養殖箱"></canvas></div>
 <div class="below"><section class="panel"><h2>選取生物 <span class="sub">觸碰可檢視</span></h2><div id="selectedInfo" class="empty">點選生物查看牠的基因與生命狀態。</div><div class="buttons"><button id="inspectSelectedBtn" class="btn ghost" disabled>在基因觀察室檢視</button></div></section><section class="panel"><h2>生態紀錄 <span class="sub">最近九筆事件與操作提示</span></h2><div class="log" id="eventLog" aria-live="polite"></div>
@@ -81,7 +148,7 @@
   <div class="global-history-pager"><button type="button" id="historyPrev" class="btn ghost" disabled>上一頁（較新）</button><span id="historyPage" class="sub" role="status">第 1 / 1 頁</span><button type="button" id="historyNext" class="btn ghost" disabled>下一頁（較早）</button></div>
 </section></section></div>
 <section class="panel archive" id="archivePanel" aria-labelledby="archiveTitle">
-  <h2 id="archiveTitle">04　生物名冊 <span id="archiveCount" class="sub">本次實驗的所有個體</span></h2>
+  <div class="archive-heading"><h2 id="archiveTitle">04　生物名冊 <span id="archiveCount" class="sub">本次實驗的所有個體</span></h2><a class="back-to-stage" href="#world">返回養殖箱</a></div>
   <div class="archive-tools">
     <div class="archive-search"><label for="archiveSearch">搜尋編號或基因片段</label><input id="archiveSearch" type="text" placeholder="例如 #3、AqM、RST" autocomplete="off" spellcheck="false"></div>
     <div><label for="archiveFilter">生存狀態</label><select id="archiveFilter"><option value="living">存活</option><option value="dead">死亡</option><option value="all">全部</option></select></div>
@@ -95,8 +162,14 @@
   </div>
   <p class="desc">包含本次實驗已死亡的生物。完整重置將清除本次實驗全部歷史；重新整理網頁也不會保留資料。</p>
 </section>
-<section class="panel inspector" id="inspector"><div class="inspector-heading"><h2>05　基因觀察室 <span class="sub">每個字元如何影響外觀</span></h2><div class="tabs" role="group" aria-label="基因來源"><button class="tab" id="tabInput" aria-pressed="true">輸入文字</button><button class="tab" id="tabSelected" aria-pressed="false" disabled>選取生物</button></div></div><div class="labtop"><div class="specimen"><canvas id="previewCanvas" aria-label="目前基因對應的放大生物外觀預覽"></canvas><div class="specdesc"><strong id="previewName">放大預覽</strong><div id="previewText" class="muted"></div><div id="previewHint" class="comparison">預覽不會消耗資源，也不會在養殖箱生成生物。</div></div></div><div><div class="traits" id="traitGrid"></div><div class="keylegend">輪廓與其餘 10 個主要性狀按有效字元的順序指定；第 12 個以後的字元循環修飾各項性狀。色相、比例與數量的計算規則公開於下表，這是本重建版自訂的確定性映射，不是原作未公開的公式。</div></div></div><div class="trace-header"><h3>字元逐項對照 <span class="sub" id="traceCount"></span></h3><button class="btn ghost" id="copyGenetics" style="flex:0 0 auto;padding:8px 12px">複製基因報告</button></div><div class="trace-wrap"><table class="trace"><thead><tr><th>位置</th><th>字元／編碼</th><th>控制項目</th><th>精確對應／影響</th></tr></thead><tbody id="traceBody"></tbody></table></div><p class="keylegend">對照方式：先輸入文字查看預覽，再按「生成一隻生物」。選取養殖箱中的任何個體，觀察室便能切換到該生物的出生基因。生物進食造成的成長只影響當前大小，不會改寫出生基因。</p></section>
 </section>
+<aside class="sidebar">
+
+<section class="panel" id="genePanel"><h2>01　基因輸入 <span class="sub">即時預覽，不會直接出生</span></h2><label class="lbl" for="geneText">基因文字（ASCII 英文字母、數字或符號）</label><textarea id="geneText" maxlength="220" spellcheck="false">Hello world</textarea><div id="geneWarning" class="alert" role="status"></div><div class="sample"><button type="button" data-example="AqMZkyLpRST">浮游型範例</button><button type="button" data-example="BqMZkyLpRST">甲殼型範例</button><button type="button" data-example="CqMZkyLpRST">星刺型範例</button><button type="button" data-example="DqMZkyLsRST">節環型範例</button><button type="button" data-example="EqMZkyLpRST">翼葉型範例</button></div><div class="buttons"><button id="createBtn" class="btn primary">生成一隻生物</button><button id="randomBtn" class="btn ghost">隨機基因</button></div><p class="desc">第 1 個有效字元決定輪廓，第 2 至 11 個分別控制比例、肢體、色彩等特徵；後續字元提供修飾。下方觀察室會逐字列出實際作用。</p></section>
+<section class="panel" id="feedPanel"><h2>02　餵食文字</h2><label class="lbl" for="feedText">投放字母（大小寫有別）</label><input id="feedText" type="text" maxlength="130" value="Hello world" spellcheck="false"><div class="buttons"><button id="feedBtn" class="btn">投放文字</button><button id="scatterBtn" class="btn ghost">隨機補食</button></div><div class="buttons"><button id="clearFoodBtn" type="button" class="btn ghost">清空所有飼料（保留生物）</button></div><p class="desc">生物只能吃下自己基因包含的相同字元。空白不會成為食物。清空飼料只移除養殖箱內字母，不會重置生物或生命紀錄；自動投餵若仍開啟，稍後可能再次出現食物。</p></section>
+<section class="panel" id="controlPanel"><h2>03　環境控制</h2><div class="stats"><div><strong id="living">0</strong><span>存活生物</span></div><div><strong id="foodCount">0</strong><span>字母食物</span></div><div><strong id="births">0</strong><span>累計出生</span></div></div><div class="switchrow"><label><input type="checkbox" id="autoFeed" checked> 自動少量投餵</label><span class="readout" id="speedVal">1.0 倍</span></div><div class="switchrow"><span class="sub">模擬速度</span><input type="range" id="simSpeed" min="0.5" max="3" value="1" step="0.5" aria-label="模擬速度"></div><div style="margin-top:14px"><label for="startMode" class="lbl">重置時的初始模式</label><select id="startMode"><option value="demo">示範生態（3 隻生物）</option><option value="empty">空箱（0 隻生物、0 個字母）</option></select></div><div class="buttons"><button id="pauseBtn" class="btn ghost">暫停</button><button id="resetBtn" class="btn ghost">依模式重置</button></div><div class="buttons"><button id="clearBtn" class="btn danger">立即完全清空養殖箱</button><button id="demoBtn" class="btn ghost">載入示範</button></div><p class="desc">清空會同時移除生物、食物、粒子與累計紀錄。箱內沒有生物時，自動投餵不會產生新字母。</p></section>
+</aside>
+<section class="panel inspector" id="inspector"><div class="inspector-heading"><h2>05　基因觀察室 <span class="sub">每個字元如何影響外觀</span></h2><div class="tabs" role="group" aria-label="基因來源"><button class="tab" id="tabInput" aria-pressed="true">輸入文字</button><button class="tab" id="tabSelected" aria-pressed="false" disabled>選取生物</button></div></div><div class="labtop"><div class="specimen"><canvas id="previewCanvas" aria-label="目前基因對應的放大生物外觀預覽"></canvas><div class="specdesc"><strong id="previewName">放大預覽</strong><div id="previewText" class="muted"></div><div id="previewHint" class="comparison">預覽不會消耗資源，也不會在養殖箱生成生物。</div></div></div><div><div class="traits" id="traitGrid"></div><div class="keylegend">輪廓與其餘 10 個主要性狀按有效字元的順序指定；第 12 個以後的字元循環修飾各項性狀。色相、比例與數量的計算規則公開於下表，這是本重建版自訂的確定性映射，不是原作未公開的公式。</div></div></div><div class="trace-header"><h3>字元逐項對照 <span class="sub" id="traceCount"></span></h3><button class="btn ghost" id="copyGenetics" style="flex:0 0 auto;padding:8px 12px">複製基因報告</button></div><div class="trace-wrap"><table class="trace"><thead><tr><th>位置</th><th>字元／編碼</th><th>控制項目</th><th>精確對應／影響</th></tr></thead><tbody id="traceBody"></tbody></table></div><p class="keylegend">對照方式：先輸入文字查看預覽，再按「生成一隻生物」。選取養殖箱中的任何個體，觀察室便能切換到該生物的出生基因。生物進食造成的成長只影響當前大小，不會改寫出生基因。</p></section>
 <footer class="foot">非官方《Life Spacies II》概念重建，並非原作原始碼或畫面。文字作為基因、字母食性、能量、覓食、交配與突變依公開研究概念實作；本版的 11 欄位基因映射、造型種類、尺寸比例、行為參數及生物畫法皆為可檢查的自訂設計，不能當作原作實際演算法。離線可用，原始碼包含在 HTML 內。研究參考：<a href="https://icat.vrsj.org/ICAT2003/papers/99215.pdf" target="_blank" rel="noopener">技術論文</a>、<a href="https://interface.ufg.ac.at/christa-laurent/LifeSpaciesII.html" target="_blank" rel="noopener">藝術家介紹</a>。</footer>
 </main>
 <script>
@@ -302,7 +375,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!creaturePreview.hi
 window.addEventListener('resize',()=>hideCreaturePreview());
 $('archiveFilter').addEventListener('change',()=>{archiveDirty=true;syncArchive();});$('archiveSort').addEventListener('change',()=>{archiveDirty=true;syncArchive();});$('archiveSearch').addEventListener('input',()=>{archiveDirty=true;syncArchive();});
 $('archivePanel').addEventListener('click',async e=>{const open=e.target.closest('[data-open-creature]');if(open){archiveClickCreature(Number(open.dataset.openCreature));return;}const tab=e.target.closest('[data-archive-tab]');if(tab){archiveTab=tab.dataset.archiveTab;archiveHistoryLimit=100;renderArchiveDetail();return;}if(e.target.closest('#archiveMoreHistory')){archiveHistoryLimit+=100;renderArchiveDetail();return;}if(e.target.closest('#archiveCopyGene')){const r=creatureRecords.get(archiveSelectedId);if(!r)return;const text=formatGeneReport(decode(r.gene));try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);else{const el=document.createElement('textarea');el.value=text;document.body.appendChild(el);el.select();document.execCommand('copy');el.remove();}e.target.textContent='已複製';}catch{e.target.textContent='無法自動複製';}}});
-function sync(){ $('living').textContent=world.length;$('foodCount').textContent=foods.length;$('births').textContent=totalBorn;syncArchive();const c=world.find(c=>c.id===selected);$('tabSelected').disabled=$('inspectSelectedBtn').disabled=!c;if(!c&&inspectMode==='selected'){inspectMode='input';updateInspector();}if(!c){$('selectedInfo').innerHTML='<span class="empty">點選生物查看牠的基因與生命狀態。</span>';return;}const e=clamp((c.energy+2.45)/6.05*100,0,100);$('selectedInfo').innerHTML=`<div class="selected-grid"><div><span>編號／世代</span><br><strong>#${c.id}／第 ${c.gen} 代</strong></div><div><span>主要輪廓</span><br><strong>${MORPHS[c.g.morph]}</strong></div><div><span>年齡／壽命</span><br><strong>${Math.floor(c.age)}／${c.life} 秒</strong></div><div><span>速度／移動倍率</span><br><strong>${c.g.speed.toFixed(0)}／${formatNum(c.g.motion)}</strong></div></div><div class="selected-gene">${escapeHTML(c.text)}</div><div class="desc">能量：${formatNum(c.energy)}，${c.repCD<=0?'具備交配條件':'繁殖冷卻中'}。</div><div class="energy"><div style="width:${e}%"></div></div>`;}
+function sync(){ $('living').textContent=world.length;$('foodCount').textContent=foods.length;$('births').textContent=totalBorn;$('quickLiving').textContent=world.length;$('quickFood').textContent=foods.length;$('quickBirths').textContent=totalBorn;syncArchive();const c=world.find(c=>c.id===selected);$('tabSelected').disabled=$('inspectSelectedBtn').disabled=!c;if(!c&&inspectMode==='selected'){inspectMode='input';updateInspector();}if(!c){$('selectedInfo').innerHTML='<span class="empty">點選生物查看牠的基因與生命狀態。</span>';return;}const e=clamp((c.energy+2.45)/6.05*100,0,100);$('selectedInfo').innerHTML=`<div class="selected-grid"><div><span>編號／世代</span><br><strong>#${c.id}／第 ${c.gen} 代</strong></div><div><span>主要輪廓</span><br><strong>${MORPHS[c.g.morph]}</strong></div><div><span>年齡／壽命</span><br><strong>${Math.floor(c.age)}／${c.life} 秒</strong></div><div><span>速度／移動倍率</span><br><strong>${c.g.speed.toFixed(0)}／${formatNum(c.g.motion)}</strong></div></div><div class="selected-gene">${escapeHTML(c.text)}</div><div class="desc">能量：${formatNum(c.energy)}，${c.repCD<=0?'具備交配條件':'繁殖冷卻中'}。</div><div class="energy"><div style="width:${e}%"></div></div>`;}
 function currentInspection(){const c=world.find(c=>c.id===selected);if(inspectMode==='selected'&&c)return {data:c.data,id:c.id,mode:'selected'};return {data:decode($('geneText').value),id:null,mode:'input'};}
 function updateInspector(){const x=currentInspection(),{data}=x;preview=x;const {g,trace,origins,chars}=data;const none=!chars.length;$('tabInput').setAttribute('aria-pressed',String(x.mode==='input'));$('tabSelected').setAttribute('aria-pressed',String(x.mode==='selected'));$('previewName').textContent=none?'尚無可解析基因':`${MORPHS[g.morph]} · ${x.mode==='input'?'文字預覽':'生物 #'+x.id}`;$('previewText').textContent=none?'':`${chars.join('')}（${chars.length} 個有效字元）`;$('traceCount').textContent=`${trace.length} 個有效字元`;const grid=$('traitGrid');grid.innerHTML=KEYS.map((k,i)=>`<div class="trait ${focusTrait===i?'focus':''}" data-trait="${i}"><div class="name">${String(i+1).padStart(2,'0')}　${NAMES[i]}</div><div class="value">${none?'尚無':escapeHTML(valueFor(g,i))}</div><div class="origin">${none?'預設值':origins[i].length?'第 '+origins[i].join('、')+' 位':'缺少對應位，採預設值'}</div></div>`).join('');$('traceBody').innerHTML=trace.length?trace.map(row=>`<tr data-trait="${row.slot}" class="${focusTrait===row.slot?'focusrow':''}"><td class="mono">${row.position}${row.cycle?'（修飾）':''}</td><td class="mono">${escapeHTML(row.ch)} / ${row.code}</td><td>${NAMES[row.slot]}</td><td>${escapeHTML(row.effect)}</td></tr>`).join(''):'<tr><td colspan="4" class="muted">無有效 ASCII 字元。請輸入基因。</td></tr>';
 const invalid=Array.from($('geneText').value).filter(c=>!(c.charCodeAt(0)>=33&&c.charCodeAt(0)<=126)&&!(/\s/.test(c)));$('geneWarning').textContent=invalid.length?`有 ${invalid.length} 個非 ASCII 字元未參與基因或食性計算。`:' ';
