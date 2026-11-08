@@ -39,6 +39,21 @@
 .archive-link:hover{background:#275567}.archive-detail .desc{margin-top:7px}.archive-controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 @media(max-width:1100px){.archive-grid{grid-template-columns:1fr}.archive-list{max-height:250px}}
 @media(max-width:600px){.archive-tools{grid-template-columns:1fr 1fr}.archive-tools .archive-search{grid-column:1/-1}.archive-list{max-height:220px}.archive-detail{padding:10px}.archive-info{grid-template-columns:1fr}.archive-tab{flex:1;min-width:68px;padding:9px 6px}.content>.archive{order:4}.sidebar>.panel:nth-of-type(2){order:5}.sidebar>.panel:nth-of-type(3){order:6}.content>.inspector{order:7}.foot{order:8}}
+
+/* Full ecological history reads canonical lifeEvents, never the nine-row text log. */
+.global-history-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px}
+.global-history-summary .btn{flex:0 0 auto}
+.global-history{margin-top:12px;border-top:1px solid #30485e;padding-top:12px}
+.global-history[hidden]{display:none!important}
+.global-history-tools{display:flex;justify-content:space-between;align-items:end;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.global-history-tools label{font-size:11px;color:#c2d6e4}
+.global-history-tools select{width:auto;min-width:135px;max-width:100%;padding:8px 10px;font-size:12px}
+.global-history-list{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:7px;max-height:380px;overflow-y:auto;overscroll-behavior:contain}
+.global-history-list li{padding:9px 10px;border:1px solid #29435b;border-radius:9px;background:#0b1b2b;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+.global-history-list time{display:block;color:#8db8cb;font:11px ui-monospace,monospace;margin-bottom:2px}
+.global-history-pager{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap}
+.global-history-pager button{flex:0 1 auto}
+.global-history-empty{color:#a9bfd2;font-size:12px;margin:10px 0}
 </style>
 </head>
 <body>
@@ -51,7 +66,14 @@
 </aside>
 <section class="content">
 <div class="stage"><div class="stagehead"><span id="indicator" class="live">● 模擬進行中</span><div class="hint">點選生物：檢查基因<br>拖曳生物：複製個體<br>點空白：投放字母</div></div><canvas id="world" tabindex="0" aria-label="可點擊與拖曳的養殖箱"></canvas></div>
-<div class="below"><section class="panel"><h2>選取生物 <span class="sub">觸碰可檢視</span></h2><div id="selectedInfo" class="empty">點選生物查看牠的基因與生命狀態。</div><div class="buttons"><button id="inspectSelectedBtn" class="btn ghost" disabled>在基因觀察室檢視</button></div></section><section class="panel"><h2>生態紀錄 <span class="sub">最近事件</span></h2><div class="log" id="eventLog" aria-live="polite"></div></section></div>
+<div class="below"><section class="panel"><h2>選取生物 <span class="sub">觸碰可檢視</span></h2><div id="selectedInfo" class="empty">點選生物查看牠的基因與生命狀態。</div><div class="buttons"><button id="inspectSelectedBtn" class="btn ghost" disabled>在基因觀察室檢視</button></div></section><section class="panel"><h2>生態紀錄 <span class="sub">最近九筆事件與操作提示</span></h2><div class="log" id="eventLog" aria-live="polite"></div>
+<div class="global-history-summary"><button type="button" id="historyToggle" class="btn ghost" aria-expanded="false" aria-controls="globalHistory">查看完整生態歷史</button><span id="historyTotal" class="sub" role="status">0 筆重大事件</span></div>
+<section id="globalHistory" class="global-history" aria-label="完整生態歷史" hidden>
+  <div class="global-history-tools"><label for="historyType">事件類型</label><select id="historyType"><option value="all">全部重大事件</option><option value="birth">出生</option><option value="mate">交配</option><option value="death">死亡</option></select></div>
+  <ol id="historyList" class="global-history-list" aria-label="全域重大事件清單"></ol>
+  <p id="historyEmpty" class="global-history-empty" hidden>目前沒有符合條件的重大事件。</p>
+  <div class="global-history-pager"><button type="button" id="historyPrev" class="btn ghost" disabled>上一頁（較新）</button><span id="historyPage" class="sub" role="status">第 1 / 1 頁</span><button type="button" id="historyNext" class="btn ghost" disabled>下一頁（較早）</button></div>
+</section></section></div>
 <section class="panel archive" id="archivePanel" aria-labelledby="archiveTitle">
   <h2 id="archiveTitle">04　生物名冊 <span id="archiveCount" class="sub">本次實驗的所有個體</span></h2>
   <div class="archive-tools">
@@ -132,13 +154,37 @@ function showCreaturePreview(trigger,interactive=false){const id=Number(trigger?
  const pos=trigger.getBoundingClientRect(),box=creaturePreview.getBoundingClientRect();const left=Math.max(12,Math.min(innerWidth-box.width-12,pos.left));let top=pos.bottom+9;if(top+box.height>innerHeight-12)top=Math.max(12,pos.top-box.height-9);creaturePreview.style.left=`${left}px`;creaturePreview.style.top=`${top}px`;
 }
 function openCreatureFromEvent(id){if(!creatureRecords.has(id))return;hideCreaturePreview();archiveClickCreature(id);$('archiveDetail').scrollIntoView({block:'start',behavior:'auto'});}
-function log(s){const row=document.createElement('div'),time=document.createElement('span');time.className='time';time.textContent=`${Math.floor(simTime).toString().padStart(3,'0')}秒`;row.append(time);
- const message=String(s),matches=message.matchAll(/#(\d+)/g);let cursor=0;for(const m of matches){const index=m.index;row.append(document.createTextNode(message.slice(cursor,index)));const id=Number(m[1]);if(creatureRecords.has(id)){const btn=document.createElement('button');btn.type='button';btn.className='log-creature';btn.dataset.creatureId=String(id);btn.textContent=m[0];btn.setAttribute('aria-label',`生物 #${id}：查看個體詳情`);row.append(btn);}else row.append(document.createTextNode(m[0]));cursor=index+m[0].length;}
- row.append(document.createTextNode(message.slice(cursor)));$('eventLog').prepend(row);while($('eventLog').childElementCount>9){const last=$('eventLog').lastChild;if(last.contains(creaturePreviewTrigger))hideCreaturePreview();last.remove();}}
+// Shared safe, real-creature-only links for both recent log and structured global history.
+function appendCreatureLinks(row,message){const text=String(message),matches=text.matchAll(/#(\d+)/g);let cursor=0;for(const m of matches){const index=m.index;row.append(document.createTextNode(text.slice(cursor,index)));const id=Number(m[1]);if(creatureRecords.has(id)){const btn=document.createElement('button');btn.type='button';btn.className='log-creature';btn.dataset.creatureId=String(id);btn.textContent=m[0];btn.setAttribute('aria-label',`生物 #${id}：查看個體詳情`);row.append(btn);}else row.append(document.createTextNode(m[0]));cursor=index+m[0].length;}row.append(document.createTextNode(text.slice(cursor)));}
+function log(s){const row=document.createElement('div'),time=document.createElement('span');time.className='time';time.textContent=`${Math.floor(simTime).toString().padStart(3,'0')}秒`;row.append(time);appendCreatureLinks(row,s);$('eventLog').prepend(row);while($('eventLog').childElementCount>9){const last=$('eventLog').lastChild;if(last.contains(creaturePreviewTrigger))hideCreaturePreview();last.remove();}}
+// Only birth, mate and death belong in the global history. Eat remains in each specimen history.
+const GLOBAL_HISTORY_PAGE_SIZE=25;
+let historyOpen=false,historyPage=1;
+function globalHistoryEvents(){const filter=$('historyType').value;return lifeEvents.filter(e=>e.type!=='eat'&&(filter==='all'||e.type===filter));}
+function globalHistoryDescription(e){const d=e.data;
+ if(e.type==='birth'){const origin=archiveOriginText[d.origin]||d.origin;const parents=d.parentIds?.length?`，雙親 ${d.parentIds.map(id=>'#'+id).join('、')}`:'';const cloned=Number.isInteger(d.sourceId)?`，複製來源 #${d.sourceId}`:'';return `生物 #${d.childId} 出生（${origin}，第 ${d.generation} 代${parents}${cloned}）。`;}
+ if(e.type==='mate')return `#${d.parentIds[0]}、#${d.parentIds[1]} 交配，子代為 #${d.childId}。`;
+ if(e.type==='death')return `#${e.creatureIds[0]} ${d.cause==='age'?'壽命結束':'因飢餓死亡'}。`;
+ return '重大生態事件';}
+function renderGlobalHistory(){const all=globalHistoryEvents(),size=GLOBAL_HISTORY_PAGE_SIZE,pages=Math.max(1,Math.ceil(all.length/size));historyPage=clamp(historyPage,1,pages);
+ $('historyTotal').textContent=`${lifeEvents.filter(e=>e.type!=='eat').length} 筆重大事件`;
+ $('historyPage').textContent=`第 ${historyPage} / ${pages} 頁 · 符合 ${all.length} 筆`;
+ $('historyPrev').disabled=historyPage<=1;$('historyNext').disabled=historyPage>=pages;
+ if(!historyOpen)return;
+ const list=$('historyList');list.replaceChildren();const start=Math.max(0,all.length-historyPage*size),end=all.length-(historyPage-1)*size;
+ for(let i=end-1;i>=start;i--){const e=all[i],li=document.createElement('li'),time=document.createElement('time');time.textContent=`${formatNum(e.time)} 秒 · ${e.type==='birth'?'出生':e.type==='mate'?'交配':'死亡'}`;li.append(time);appendCreatureLinks(li,globalHistoryDescription(e));list.append(li);}
+ $('historyEmpty').hidden=all.length!==0;
+}
+function refreshGlobalHistory(){renderGlobalHistory();}
+function resetGlobalHistory(){historyOpen=false;historyPage=1;$('historyType').value='all';$('globalHistory').hidden=true;$('historyToggle').setAttribute('aria-expanded','false');$('historyToggle').textContent='查看完整生態歷史';hideCreaturePreview();renderGlobalHistory();}
+$('historyToggle').addEventListener('click',()=>{historyOpen=!historyOpen;$('globalHistory').hidden=!historyOpen;$('historyToggle').setAttribute('aria-expanded',String(historyOpen));$('historyToggle').textContent=historyOpen?'收合完整生態歷史':'查看完整生態歷史';if(!historyOpen)hideCreaturePreview();renderGlobalHistory();});
+$('historyType').addEventListener('change',()=>{historyPage=1;hideCreaturePreview();renderGlobalHistory();});
+$('historyPrev').addEventListener('click',()=>{if(historyPage>1){historyPage--;hideCreaturePreview();renderGlobalHistory();}});
+$('historyNext').addEventListener('click',()=>{historyPage++;hideCreaturePreview();renderGlobalHistory();});
 // v3 第一階段：每次實驗的個體檔案與單一結構化生命事件來源。
 // 活體即時參數仍以 world 為準；lastState 只保存出生或死亡時的快照。
 function snapshotCreature(c){return {age:c.age,energy:c.energy,size:c.size,x:c.x,y:c.y,repCD:c.repCD};}
-function recordLifeEvent(type,creatureIds,data={}){const ids=[...new Set(creatureIds.filter(id=>Number.isInteger(id)))];const event={id:nextEventId++,time:simTime,type,creatureIds:ids,data};lifeEvents.push(event);for(const id of ids){const rec=creatureRecords.get(id);if(rec)rec.eventIds.push(event.id);}archiveDirty=true;return event;}
+function recordLifeEvent(type,creatureIds,data={}){const ids=[...new Set(creatureIds.filter(id=>Number.isInteger(id)))];const event={id:nextEventId++,time:simTime,type,creatureIds:ids,data};lifeEvents.push(event);for(const id of ids){const rec=creatureRecords.get(id);if(rec)rec.eventIds.push(event.id);}archiveDirty=true;if(type!=='eat')refreshGlobalHistory();return event;}
 function spark(x,y,hue,n=9){for(let j=0;j<n;j++)particles.push({x,y,vx:rand(-30,30),vy:rand(-30,30),hue,life:rand(.35,.9),max:1});}
 function birth(text,x=rand(85,W-85),y=rand(100,H-90),generation=1,meta={}){const data=decode(text);if(!data.chars.length){log('請輸入有效的 ASCII 基因文字。');return null}if(world.length>=28){log('養殖箱最多容納 28 隻生物。');return null}const id=nextId++,g=data.g,c={id,text:data.chars.join(''),g,data,x:clamp(x,35,W-35),y:clamp(y,75,H-45),vx:0,vy:0,dir:rand(-.4,.4),t:rand(0,TAU),age:0,energy:1,repCD:rand(6,10),gen:generation,size:g.size,life:g.life,alive:true,dragging:false,heading:rand(0,TAU),wander:0};const origin=meta.origin||'manual',parentIds=origin==='breeding'?[...meta.parentIds||[]]:[],sourceId=origin==='clone'?meta.sourceId??null:null;world.push(c);totalBorn++;selected=id;const rec={id,gene:c.text,traits:{...g},generation,origin,parentIds,sourceId,childIds:[],bornAt:simTime,diedAt:null,deathCause:null,status:'living',lastState:snapshotCreature(c),eventIds:[]};creatureRecords.set(id,rec);for(const parentId of parentIds){const parent=creatureRecords.get(parentId);if(parent)parent.childIds.push(id);}recordLifeEvent('birth',[id,...parentIds,...(sourceId===null?[]:[sourceId])],{childId:id,origin,parentIds:[...parentIds],sourceId,gene:c.text,generation});spark(c.x,c.y,g.hue,13);log(`生物 #${id} 出生（第 ${generation} 代，${MORPHS[g.morph]}）。`);sync();return c;}
 function dropChar(ch,x,y){if(!ch||ch.charCodeAt(0)<33||ch.charCodeAt(0)>126)return;if(foods.length>=220)foods.splice(0,foods.length-219);foods.push({ch,x:clamp(x,17,W-17),y:clamp(y,65,H-27),vx:rand(-5,5),vy:rand(-4,4),phase:rand(0,TAU),age:0,life:rand(40,78)});}
@@ -207,11 +253,11 @@ panel.innerHTML=`<h3 id="archiveDetailTitle">生物 #${r.id} · ${MORPHS[r.trait
 function syncArchive(){if(archiveDirty){renderArchiveList();renderArchiveDetail();archiveDirty=false;return;}if(archiveSelectedId!==null&&archiveTab==='status'){const record=creatureRecords.get(archiveSelectedId);if(record?.status==='living'){const live=archiveLiveState(record),values={'年齡':live?formatNum(live.age)+' / '+record.traits.life+' 秒':'','能量':live?formatNum(live.energy):'','當前大小':live?formatNum(live.size):'','最後位置':live?`${Math.round(live.x)}, ${Math.round(live.y)}`:''};for(const el of $('archiveDetail').querySelectorAll('[data-state-key]'))if(values[el.dataset.stateKey]!==undefined)el.textContent=values[el.dataset.stateKey];}}for(const el of $('archiveList').querySelectorAll('[data-archive-energy]')){const r=creatureRecords.get(Number(el.dataset.archiveEnergy));if(r?.status==='living')el.textContent='能量 '+formatNum(archiveEnergy(r));}}
 // 桌面：懸停／鍵盤焦點提供只讀摘要，點擊可直接跳到完整個體資料。
 // 觸控：先顯示可操作的摘要，避免觸控裝置沒有 hover 時只能直接跳轉。
-$('eventLog').addEventListener('pointerover',e=>{const btn=e.target.closest('.log-creature');if(btn&&e.pointerType!=='touch'&&!creaturePreviewInteractive)showCreaturePreview(btn);});
-$('eventLog').addEventListener('pointerout',e=>{const btn=e.target.closest('.log-creature');if(btn&&creaturePreviewTrigger===btn&&!creaturePreviewInteractive&&!btn.contains(e.relatedTarget))hideCreaturePreview();});
-$('eventLog').addEventListener('focusin',e=>{const btn=e.target.closest('.log-creature');if(btn&&!creaturePreviewInteractive)showCreaturePreview(btn);});
-$('eventLog').addEventListener('focusout',e=>{const btn=e.target.closest('.log-creature');if(btn&&!creaturePreviewInteractive&&!creaturePreview.contains(e.relatedTarget))hideCreaturePreview();});
-$('eventLog').addEventListener('click',e=>{const btn=e.target.closest('.log-creature');if(!btn)return;const touch=e.pointerType==='touch'||(e.detail>0&&matchMedia('(hover:none)').matches);if(touch)showCreaturePreview(btn,true);else openCreatureFromEvent(Number(btn.dataset.creatureId));});
+document.addEventListener('pointerover',e=>{const btn=e.target.closest('.log-creature');if(btn&&e.pointerType!=='touch'&&!creaturePreviewInteractive)showCreaturePreview(btn);});
+document.addEventListener('pointerout',e=>{const btn=e.target.closest('.log-creature');if(btn&&creaturePreviewTrigger===btn&&!creaturePreviewInteractive&&!btn.contains(e.relatedTarget))hideCreaturePreview();});
+document.addEventListener('focusin',e=>{const btn=e.target.closest('.log-creature');if(btn&&!creaturePreviewInteractive)showCreaturePreview(btn);});
+document.addEventListener('focusout',e=>{const btn=e.target.closest('.log-creature');if(btn&&!creaturePreviewInteractive&&!creaturePreview.contains(e.relatedTarget))hideCreaturePreview();});
+document.addEventListener('click',e=>{const btn=e.target.closest('.log-creature');if(!btn)return;const touch=e.pointerType==='touch'||(e.detail>0&&matchMedia('(hover:none)').matches);if(touch)showCreaturePreview(btn,true);else openCreatureFromEvent(Number(btn.dataset.creatureId));});
 creaturePreview.addEventListener('click',e=>{const open=e.target.closest('[data-preview-open]');if(open){openCreatureFromEvent(Number(open.dataset.previewOpen));return;}if(e.target.closest('[data-preview-close]'))hideCreaturePreview();});
 document.addEventListener('pointerdown',e=>{if(creaturePreviewInteractive&&!e.target.closest('.log-creature')&&!creaturePreview.contains(e.target))hideCreaturePreview();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!creaturePreview.hidden){const focus=creaturePreviewTrigger;hideCreaturePreview();if(focus?.isConnected)focus.focus();}});
@@ -225,7 +271,7 @@ const invalid=Array.from($('geneText').value).filter(c=>!(c.charCodeAt(0)>=33&&c
 $('copyGenetics').disabled=none;}
 function formatGeneReport(data){const rows=[`基因：${data.chars.join('')}`,`有效字元：${data.chars.length}`, ...KEYS.map((key,i)=>`${NAMES[i]}：${valueFor(data.g,i)}；來源：${data.origins[i].join(',')||'預設'}`),'','逐字對照',...data.trace.map(r=>`${r.position}. ${r.ch} (ASCII ${r.code}) → ${NAMES[r.slot]}：${r.effect}`)];return rows.join('\n');}
 function report(){return formatGeneReport(currentInspection().data);}
-function reset(mode=$('startMode').value){world=[];foods=[];particles=[];creatureRecords.clear();lifeEvents=[];nextEventId=1;selected=null;archiveSelectedId=null;archiveTab='status';archiveHistoryLimit=100;archiveDirty=true;drag=null;simTime=0;uiClock=0;autoClock=0;totalBorn=0;nextId=1;$('eventLog').textContent='';hideCreaturePreview();if(mode==='demo'){const samples=['AqMZkyLpRST','BpNQrwLoSMT','CzWQrsHpTUV'];birth(samples[0],W*.26,H*.39,1,{origin:'demo'});birth(samples[1],W*.67,H*.60,1,{origin:'demo'});birth(samples[2],W*.53,H*.30,1,{origin:'demo'});randomFeed(24);log('示範生態載入完成。');}else{log('已完全清空養殖箱，從 0 隻生物開始。');}inspectMode='input';focusTrait=-1;sync();updateInspector();}
+function reset(mode=$('startMode').value){world=[];foods=[];particles=[];creatureRecords.clear();lifeEvents=[];nextEventId=1;selected=null;archiveSelectedId=null;archiveTab='status';archiveHistoryLimit=100;archiveDirty=true;drag=null;simTime=0;uiClock=0;autoClock=0;totalBorn=0;nextId=1;$('eventLog').textContent='';resetGlobalHistory();if(mode==='demo'){const samples=['AqMZkyLpRST','BpNQrwLoSMT','CzWQrsHpTUV'];birth(samples[0],W*.26,H*.39,1,{origin:'demo'});birth(samples[1],W*.67,H*.60,1,{origin:'demo'});birth(samples[2],W*.53,H*.30,1,{origin:'demo'});randomFeed(24);log('示範生態載入完成。');}else{log('已完全清空養殖箱，從 0 隻生物開始。');}inspectMode='input';focusTrait=-1;sync();updateInspector();}
 function loop(now){const dt=clamp((now-lastStamp)/1000,0,.045);lastStamp=now;if(!paused)update(dt*speed);render();requestAnimationFrame(loop);}
 const coords=e=>{const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};};
 canvas.addEventListener('pointerdown',e=>{const p=coords(e);mouse=p;let best=null,dist=Infinity;for(const c of world){const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<c.size*1.55&&d<dist){best=c;dist=d;}}canvas.setPointerCapture(e.pointerId);if(best){selected=best.id;archiveSelectedId=best.id;archiveTab='status';archiveHistoryLimit=100;archiveDirty=true;best.dragging=true;drag={c:best,x:p.x,y:p.y,travel:0};inspectMode='selected';focusTrait=-1;updateInspector();}else{drag={c:null,x:p.x,y:p.y,travel:0};}sync();});
