@@ -108,13 +108,16 @@ class ResponsiveShellBrowserRegression(unittest.TestCase):
 
     def test_mobile_counts_stay_synced_with_real_environment(self):
         self.mobile(390)
+        self.page.locator('[data-tool-toggle="controlPanel"]').click()
         self.page.locator('#pauseBtn').click()
+        self.page.locator('a.quick-link[href="#genePanel"]').click()
         self.page.locator('#geneText').fill('MobileABC')
         born=int(self.page.locator('#births').inner_text())
         self.page.locator('#createBtn').click()
         self.assertEqual(self.page.locator('#quickBirths').inner_text(),str(born+1))
         self.assertEqual(self.page.locator('#quickLiving').inner_text(),
                          self.page.locator('#living').inner_text())
+        self.page.locator('a.quick-link[href="#feedPanel"]').click()
         self.page.locator('#feedText').fill('ABC')
         self.page.locator('#feedBtn').click()
         self.assertEqual(self.page.locator('#quickFood').inner_text(),
@@ -128,7 +131,9 @@ class ResponsiveShellBrowserRegression(unittest.TestCase):
 
     def test_mobile_archive_four_tabs_and_canvas_return(self):
         self.mobile(390)
+        self.page.locator('[data-tool-toggle="controlPanel"]').click()
         self.page.locator('#pauseBtn').click()
+        self.page.locator('a.quick-link[href="#genePanel"]').click()
         self.page.locator('#geneText').fill('GeneMobile')
         self.page.locator('#createBtn').click()
         self.page.locator('#archiveFilter').select_option('all')
@@ -138,8 +143,8 @@ class ResponsiveShellBrowserRegression(unittest.TestCase):
         for tab in ['gene','life','kin','status']:
             self.page.locator(f'[data-archive-tab="{tab}"]').click()
             self.assertTrue(self.page.locator('#archiveTabBody').is_visible())
-        self.page.locator('.back-to-stage').click()
-        self.assertEqual(self.page.evaluate('location.hash'),'#world')
+        self.page.locator('[data-detail-close="stage"]').click()
+        self.assertEqual(self.page.evaluate('document.activeElement.id'),'world')
         self.no_overflow()
 
     def test_keyboard_native_navigation_preserves_focus_and_controls(self):
