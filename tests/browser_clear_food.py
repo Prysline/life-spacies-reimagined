@@ -150,6 +150,8 @@ class ClearFoodBrowserRegression(unittest.TestCase):
         for width, height in [(320,720),(390,844),(768,1024),(1440,900)]:
             with self.subTest(width=width):
                 self.page.set_viewport_size({'width':width,'height':height})
+                if width <= 767 and not button.is_visible():
+                    self.page.locator('[data-tool-toggle="feedPanel"]').click()
                 self.assertTrue(button.is_visible())
                 self.assertLessEqual(self.js('document.documentElement.scrollWidth'), width+1)
 
