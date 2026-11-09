@@ -151,6 +151,8 @@ class StatusPreviewBrowserRegression(unittest.TestCase):
         for width in [320,390,768,1440]:
             with self.subTest(width=width):
                 self.page.set_viewport_size({'width':width,'height':844})
+                if width <= 767 and not self.canvas().is_visible():
+                    self.page.locator('#archiveList [data-open-creature="1"]').click()
                 self.assertTrue(self.canvas().is_visible())
                 self.assertLessEqual(self.eval('document.documentElement.scrollWidth'),width+1)
         self.page.locator('#clearBtn').click()
