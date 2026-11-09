@@ -167,6 +167,8 @@ class ArchiveBrowserRegression(unittest.TestCase):
                     self.tab(name)
                     self.assertTrue(self.page.locator('#archiveTabBody').is_visible())
                 self.assertLessEqual(self.page.evaluate('document.documentElement.scrollWidth'),width+1)
+                if width <= 767:
+                    self.page.locator('[data-detail-close="list"]').click()
 
 
 if __name__ == '__main__':
