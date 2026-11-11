@@ -77,8 +77,7 @@ class PointerGestureBrowserRegression(unittest.TestCase):
         self.assertEqual(self.page.evaluate('window.__ecologyTest.dragging()'),[False])
 
     def test_touch_tap_empty_only_drops_one_letter(self):
-        self.page.locator('a.quick-link[href="#feedPanel"]').click()
-        self.page.locator('#feedText').fill('A')
+        self.page.evaluate('document.getElementById("feedText").value="A"')
         x,y=self.point('empty')
         self.page.touchscreen.tap(x,y)
         s=self.snap()
@@ -107,8 +106,7 @@ class PointerGestureBrowserRegression(unittest.TestCase):
         self.assertEqual(self.snap()['born'],1)
 
     def test_cancelled_empty_tap_does_not_feed(self):
-        self.page.locator('a.quick-link[href="#feedPanel"]').click()
-        self.page.locator('#feedText').fill('F')
+        self.page.evaluate('document.getElementById("feedText").value="F"')
         self.drag_begin('empty')
         self.page.evaluate('''() => {
           const id=window.__ecologyTest.pointer().id;
@@ -148,8 +146,7 @@ class PointerGestureBrowserRegression(unittest.TestCase):
         self.assertEqual(self.snap()['born'],1)
 
     def test_right_click_empty_does_not_feed(self):
-        self.page.locator('a.quick-link[href="#feedPanel"]').click()
-        self.page.locator('#feedText').fill('Q')
+        self.page.evaluate('document.getElementById("feedText").value="Q"')
         x,y=self.point('empty')
         self.page.mouse.click(x,y,button='right')
         self.assertEqual(self.snap()['foods'],[])
