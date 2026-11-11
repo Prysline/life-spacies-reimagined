@@ -504,9 +504,55 @@ let archivePortraitStamp=0;
 function loop(now){const dt=clamp((now-lastStamp)/1000,0,.045);lastStamp=now;if(!paused)update(dt*speed);render();if(archiveTab==='status'&&archiveSelectedId!==null&&now-archivePortraitStamp>=90){archivePortraitStamp=now;drawArchiveSpecimen();}
 requestAnimationFrame(loop);}
 const coords=e=>{const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};};
-canvas.addEventListener('pointerdown',e=>{const p=coords(e);mouse=p;let best=null,dist=Infinity;for(const c of world){const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<c.size*1.55&&d<dist){best=c;dist=d;}}canvas.setPointerCapture(e.pointerId);if(best){selected=best.id;archiveSelectedId=best.id;archiveTab='status';archiveHistoryLimit=100;archiveDirty=true;best.dragging=true;drag={c:best,x:p.x,y:p.y,travel:0};inspectMode='selected';focusTrait=-1;updateInspector();}else{drag={c:null,x:p.x,y:p.y,travel:0};}sync();});
-canvas.addEventListener('pointermove',e=>{const p=coords(e);mouse=p;if(!drag)return;drag.travel=Math.max(drag.travel,Math.hypot(p.x-drag.x,p.y-drag.y));if(drag.c){drag.c.x=clamp(p.x,40,W-40);drag.c.y=clamp(p.y,88,H-42);}});
-function releasePointer(){if(!drag)return;const d=drag;drag=null;if(d.c){d.c.dragging=false;if(d.travel>20){const cc=birth(d.c.text,d.c.x+rand(-15,15),d.c.y+rand(-15,15),d.c.gen,{origin:'clone',sourceId:d.c.id});if(cc)log(`拖曳 #${d.c.id}，複製出 #${cc.id}。`);}}else if(d.travel<17){const chars=Array.from(normalize($('feedText').value));if(chars.length)dropChar(chars[Math.floor(Math.random()*chars.length)],d.x,d.y);}sync();}canvas.addEventListener('pointerup',releasePointer);canvas.addEventListener('pointercancel',releasePointer);
+// 3C: only a completed gesture may clone or feed; interrupted/multi-touch gestures roll back.
+function cancelPointerGesture(){
+ if(!drag)return;
+ const d=drag;drag=null;
+ if(d.c){d.c.dragging=false;d.c.x=d.startX;d.c.y=d.startY;}
+ sync();
+}
+canvas.addEventListener('pointerdown',e=>{
+ if(drag){if(e.pointerType==='touch')cancelPointerGesture();return;}
+ if(e.button!==0||(e.pointerType==='touch'&&!e.isPrimary))return;
+ const p=coords(e);mouse=p;
+ let best=null,dist=Infinity;
+ for(const c of world){const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<c.size*1.55&&d<dist){best=c;dist=d;}}
+ canvas.setPointerCapture(e.pointerId);
+ if(best){
+  selected=best.id;archiveSelectedId=best.id;archiveTab='status';archiveHistoryLimit=100;archiveDirty=true;
+  best.dragging=true;
+  drag={c:best,x:p.x,y:p.y,startX:best.x,startY:best.y,travel:0,pointerId:e.pointerId};
+  inspectMode='selected';focusTrait=-1;updateInspector();
+ }else{drag={c:null,x:p.x,y:p.y,travel:0,pointerId:e.pointerId};}
+ sync();
+});
+canvas.addEventListener('pointermove',e=>{
+ if(drag&&e.pointerId!==drag.pointerId)return;
+ const p=coords(e);mouse=p;
+ if(!drag)return;
+ drag.travel=Math.max(drag.travel,Math.hypot(p.x-drag.x,p.y-drag.y));
+ if(drag.c){drag.c.x=clamp(p.x,40,W-40);drag.c.y=clamp(p.y,88,H-42);}
+});
+function releasePointer(e){
+ if(!drag||e.pointerId!==drag.pointerId)return;
+ const d=drag;drag=null;
+ if(d.c){
+  d.c.dragging=false;
+  if(d.travel>20){
+   const cc=birth(d.c.text,d.c.x+rand(-15,15),d.c.y+rand(-15,15),d.c.gen,{origin:'clone',sourceId:d.c.id});
+   if(cc)log(`拖曳 #${d.c.id}，複製出 #${cc.id}。`);
+  }
+ }else if(d.travel<17){
+  const chars=Array.from(normalize($('feedText').value));
+  if(chars.length)dropChar(chars[Math.floor(Math.random()*chars.length)],d.x,d.y);
+ }
+ sync();
+}
+function cancelPointer(e){if(drag&&e.pointerId===drag.pointerId)cancelPointerGesture();}
+canvas.addEventListener('pointerup',releasePointer);
+canvas.addEventListener('pointercancel',cancelPointer);
+canvas.addEventListener('lostpointercapture',cancelPointer);
+window.addEventListener('blur',cancelPointerGesture);
 $('geneText').addEventListener('input',()=>{inspectMode='input';focusTrait=-1;updateInspector();});$('createBtn').addEventListener('click',()=>birth($('geneText').value));$('randomBtn').addEventListener('click',()=>{const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';$('geneText').value=Array.from({length:11+Math.floor(Math.random()*12)},()=>alphabet[Math.floor(Math.random()*alphabet.length)]).join('');inspectMode='input';focusTrait=-1;updateInspector();});
 document.querySelectorAll('[data-example]').forEach(b=>b.addEventListener('click',()=>{$('geneText').value=b.dataset.example;inspectMode='input';focusTrait=-1;updateInspector();}));$('feedBtn').addEventListener('click',()=>feedText($('feedText').value));$('scatterBtn').addEventListener('click',()=>randomFeed(24));$('clearFoodBtn').addEventListener('click',clearAllFood);$('startMode').addEventListener('change',()=>{});$('resetBtn').addEventListener('click',()=>reset());$('clearBtn').addEventListener('click',()=>{$('startMode').value='empty';reset('empty');});$('demoBtn').addEventListener('click',()=>{$('startMode').value='demo';reset('demo');});$('pauseBtn').addEventListener('click',()=>{paused=!paused;$('pauseBtn').textContent=paused?'繼續':'暫停';$('indicator').textContent=paused?'○ 模擬已暫停':'● 模擬進行中';lastStamp=performance.now();syncArchive();});$('simSpeed').addEventListener('input',e=>{speed=Number(e.target.value);$('speedVal').textContent=speed.toFixed(1)+' 倍';});$('inspectSelectedBtn').addEventListener('click',()=>{if(!world.some(c=>c.id===selected))return;inspectMode='selected';focusTrait=-1;updateInspector();$('inspector').scrollIntoView({behavior:'smooth',block:'start'});});$('tabInput').addEventListener('click',()=>{inspectMode='input';focusTrait=-1;updateInspector();});$('tabSelected').addEventListener('click',()=>{if(world.some(c=>c.id===selected)){inspectMode='selected';focusTrait=-1;updateInspector();}});
 $('traceBody').addEventListener('click',e=>{const tr=e.target.closest('tr[data-trait]');if(!tr)return;focusTrait=Number(tr.dataset.trait);updateInspector();});$('traitGrid').addEventListener('click',e=>{const tr=e.target.closest('[data-trait]');if(!tr)return;focusTrait=Number(tr.dataset.trait);updateInspector();});$('copyGenetics').addEventListener('click',async()=>{const t=report();try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(t);}else{const el=document.createElement('textarea');el.value=t;document.body.appendChild(el);el.select();document.execCommand('copy');el.remove();}$('copyGenetics').textContent='已複製報告';setTimeout(()=>$('copyGenetics').textContent='複製基因報告',1700);}catch(e){const win=window.open('','_blank');if(win){win.document.body.textContent=t;}}});
