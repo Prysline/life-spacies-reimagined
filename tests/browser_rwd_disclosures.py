@@ -48,8 +48,8 @@ class ResponsiveDisclosuresBrowserRegression(unittest.TestCase):
   self.assertFalse(self.page.locator('.tool-toggle').first.is_visible())
   for name in ['geneText','feedText','pauseBtn']:
    self.assertTrue(self.page.locator(f'#{name}').is_visible())
-  self.assertTrue(self.page.locator('#archiveDetail').is_visible())
-  self.page.locator('#geneText').fill('DesktopGene');self.page.locator('#createBtn').click();self.page.locator('#archiveList [data-open-creature]').first.click();self.assertTrue(self.page.locator('#archiveDetailTitle').is_visible())
+  self.assertFalse(self.page.locator('#archiveDetail').is_visible())
+  self.page.locator('#geneText').fill('DesktopGene');self.page.locator('#createBtn').click();self.page.locator('#archiveList [data-open-creature]').first.click();self.assertTrue(self.page.locator('#archiveDetail').is_visible());self.assertTrue(self.page.locator('#archiveDetailTitle').is_visible())
   self.assertEqual(self.page.locator('#archiveDetail').get_attribute('role'),None)
  def test_7_return_on_resize_and_no_data_loss(self):
   self.create('KeepData');self.page.locator('#archiveList [data-open-creature]').first.click()

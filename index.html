@@ -119,6 +119,31 @@
 }
 @media(max-width:359px){.quick-stats span{padding:8px 6px;font-size:10px}.quick-stats strong{font-size:16px}}
 
+/* v3 3B-2: a right-column detail drawer and collapsible tablet directory. */
+.tablet-directory-toggle{display:none}
+@media(min-width:1200px){
+ .content>.archive{max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain}
+ .content>.archive:not(.desktop-detail-open) .archive-detail{display:none}
+ .content>.archive.desktop-detail-open .archive-list{max-height:150px}
+ .content>.archive.desktop-detail-open .archive-detail{max-height:min(62vh,680px)}
+ .content>.archive.desktop-detail-open .archive-detail-nav{display:flex;position:sticky;top:-12px;z-index:3;justify-content:flex-end;background:#0b1929;padding:0 0 9px}
+ .archive-detail-nav [data-detail-close="stage"]{display:none}
+ .content>.archive.desktop-detail-open .archive-detail-nav [data-detail-close="list"]{min-height:40px;border:1px solid #598d96;background:#1b4250;border-radius:8px;padding:8px 12px;color:#ecfbff;font-weight:700}
+}
+@media(min-width:768px) and (max-width:1199px){
+ .tablet-directory-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 10px;border:1px solid #4d7c87;background:#1b4052;color:#e4fff5;font-weight:700;border-radius:8px;font-size:12px}
+ .layout:has(.archive.tablet-collapsed){grid-template-columns:minmax(0,1fr) minmax(100px,118px)}
+ .content>.archive.tablet-collapsed{padding:10px}
+ .content>.archive.tablet-collapsed .archive-body{display:none}
+ .content>.archive.tablet-collapsed .archive-heading{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+ .content>.archive.tablet-collapsed .archive-heading h2{font-size:12px;margin:0}
+ .content>.archive.tablet-collapsed #archiveCount{display:none}
+ .content>.archive .archive-detail-nav{display:flex;justify-content:flex-end;margin-bottom:8px}
+ .content>.archive .archive-detail-nav [data-detail-close="stage"]{display:none}
+ .content>.archive .archive-detail-nav [data-detail-close="list"]{min-height:40px;border:1px solid #598d96;background:#1b4250;border-radius:8px;padding:8px 12px;color:#ecfbff;font-weight:700}
+ .content>.archive:not(.tablet-detail-open) .archive-detail{display:none}
+ .content>.archive.tablet-detail-open .archive-list{max-height:120px}
+}
 /* v3 3B-1: mobile-only tool disclosure and near-full-screen specimen details. */
 .tool-toggle,.inspector-mobile-toggle{display:none}
 .archive-detail-nav{display:none}
@@ -170,7 +195,8 @@
   <div class="global-history-pager"><button type="button" id="historyPrev" class="btn ghost" disabled>上一頁（較新）</button><span id="historyPage" class="sub" role="status">第 1 / 1 頁</span><button type="button" id="historyNext" class="btn ghost" disabled>下一頁（較早）</button></div>
 </section></section></div>
 <section class="panel archive" id="archivePanel" aria-labelledby="archiveTitle">
-  <div class="archive-heading"><h2 id="archiveTitle">04　生物名冊 <span id="archiveCount" class="sub">本次實驗的所有個體</span></h2><a class="back-to-stage" href="#world">返回養殖箱</a></div>
+  <div class="archive-heading"><h2 id="archiveTitle">04　生物名冊 <span id="archiveCount" class="sub">本次實驗的所有個體</span></h2><button type="button" id="tabletDirectoryToggle" class="tablet-directory-toggle" aria-expanded="true" aria-controls="archiveBody">收合名冊</button><a class="back-to-stage" href="#world">返回養殖箱</a></div>
+  <div id="archiveBody" class="archive-body">
   <div class="archive-tools">
     <div class="archive-search"><label for="archiveSearch">搜尋編號或基因片段</label><input id="archiveSearch" type="text" placeholder="例如 #3、AqM、RST" autocomplete="off" spellcheck="false"></div>
     <div><label for="archiveFilter">生存狀態</label><select id="archiveFilter"><option value="living">存活</option><option value="dead">死亡</option><option value="all">全部</option></select></div>
@@ -183,6 +209,7 @@
     </section>
   </div>
   <p class="desc">包含本次實驗已死亡的生物。完整重置將清除本次實驗全部歷史；重新整理網頁也不會保留資料。</p>
+  </div>
 </section>
 </section>
 <aside class="sidebar">
@@ -341,6 +368,25 @@ function archiveLiveState(r){return world.find(c=>c.id===r.id)||null;}
 function archiveAge(r){return archiveLiveState(r)?.age??r.lastState.age;}
 function archiveEnergy(r){return archiveLiveState(r)?.energy??r.lastState.energy;}
 const specimenMobile=matchMedia('(max-width:767px)');
+const specimenTablet=matchMedia('(min-width:768px) and (max-width:1199px)');
+function setTabletDirectoryOpen(open){
+ const archive=$('archivePanel'),button=$('tabletDirectoryToggle');
+ archive.classList.toggle('tablet-collapsed',!open);
+ button.setAttribute('aria-expanded',String(open));
+ button.textContent=open?'收合名冊':'展開名冊';
+}
+$('tabletDirectoryToggle').addEventListener('click',()=>{
+ const open=$('archivePanel').classList.contains('tablet-collapsed');
+ setTabletDirectoryOpen(open);
+ if(open)$('archiveSearch').focus({preventScroll:true});
+});
+function closeInlineArchiveDetail(){
+ const archive=$('archivePanel');
+ archive.classList.remove('desktop-detail-open','tablet-detail-open');
+ const found=$('archiveList').querySelector(`[data-open-creature="${archiveSelectedId}"]`);
+ (found||$('archiveSearch')).focus({preventScroll:true});
+}
+
 let specimenReturnFocus=null;
 function openSpecimenDetail(){
  if(!specimenMobile.matches)return;
@@ -389,7 +435,7 @@ document.addEventListener('keydown',e=>{
  if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel)){e.preventDefault();last.focus();}
  else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===panel)){e.preventDefault();first.focus();}
 });
-function archiveClickCreature(id){const record=creatureRecords.get(id);if(!record)return;archiveSelectedId=id;archiveTab='status';archiveHistoryLimit=100;const live=archiveLiveState(record);selected=live?id:null;if(live){inspectMode='selected';focusTrait=-1;}else if(inspectMode==='selected'){inspectMode='input';focusTrait=-1;}updateInspector();archiveDirty=true;sync();openSpecimenDetail();}
+function archiveClickCreature(id){const record=creatureRecords.get(id);if(!record)return;if(specimenTablet.matches)setTabletDirectoryOpen(true);$('archivePanel').classList.add('desktop-detail-open','tablet-detail-open');archiveSelectedId=id;archiveTab='status';archiveHistoryLimit=100;const live=archiveLiveState(record);selected=live?id:null;if(live){inspectMode='selected';focusTrait=-1;}else if(inspectMode==='selected'){inspectMode='input';focusTrait=-1;}updateInspector();archiveDirty=true;sync();openSpecimenDetail();}
 function archiveLink(id){const record=creatureRecords.get(id);return record?`<button type="button" class="archive-link" data-open-creature="${id}">#${id}（${MORPHS[record.traits.morph]}）</button>`:'';}
 function archiveListItems(){let items=[...creatureRecords.values()];const filter=$('archiveFilter').value;const raw=$('archiveSearch').value.trim().toLowerCase(),idOnly=/^#\d+$/.test(raw),q=raw.replace(/^#/,'');if(filter!=='all')items=items.filter(r=>r.status===filter);if(q)items=items.filter(r=>idOnly?String(r.id)===q:String(r.id).includes(q)||r.gene.toLowerCase().includes(q));const sort=$('archiveSort').value;
 items.sort((a,b)=>sort==='id-asc'?a.id-b.id:sort==='generation'?b.generation-a.generation||b.id-a.id:sort==='age'?archiveAge(b)-archiveAge(a)||b.id-a.id:sort==='energy'?archiveEnergy(b)-archiveEnergy(a)||b.id-a.id:b.id-a.id);return items;}
@@ -445,7 +491,7 @@ document.addEventListener('pointerdown',e=>{if(creaturePreviewInteractive&&!e.ta
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!creaturePreview.hidden){const focus=creaturePreviewTrigger;hideCreaturePreview();if(focus?.isConnected)focus.focus();}});
 window.addEventListener('resize',()=>hideCreaturePreview());
 $('archiveFilter').addEventListener('change',()=>{archiveDirty=true;syncArchive();});$('archiveSort').addEventListener('change',()=>{archiveDirty=true;syncArchive();});$('archiveSearch').addEventListener('input',()=>{archiveDirty=true;syncArchive();});
-$('archivePanel').addEventListener('click',async e=>{const close=e.target.closest('[data-detail-close]');if(close){closeSpecimenDetail(close.dataset.detailClose);return;}const open=e.target.closest('[data-open-creature]');if(open){archiveClickCreature(Number(open.dataset.openCreature));return;}const tab=e.target.closest('[data-archive-tab]');if(tab){archiveTab=tab.dataset.archiveTab;archiveHistoryLimit=100;renderArchiveDetail();$('archiveDetail').querySelector(`[data-archive-tab="${archiveTab}"]`)?.focus({preventScroll:true});return;}if(e.target.closest('#archiveMoreHistory')){archiveHistoryLimit+=100;renderArchiveDetail();return;}if(e.target.closest('#archiveCopyGene')){const r=creatureRecords.get(archiveSelectedId);if(!r)return;const text=formatGeneReport(decode(r.gene));try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);else{const el=document.createElement('textarea');el.value=text;document.body.appendChild(el);el.select();document.execCommand('copy');el.remove();}e.target.textContent='已複製';}catch{e.target.textContent='無法自動複製';}}});
+$('archivePanel').addEventListener('click',async e=>{const close=e.target.closest('[data-detail-close]');if(close){if(specimenMobile.matches)closeSpecimenDetail(close.dataset.detailClose);else closeInlineArchiveDetail();return;}const open=e.target.closest('[data-open-creature]');if(open){archiveClickCreature(Number(open.dataset.openCreature));return;}const tab=e.target.closest('[data-archive-tab]');if(tab){archiveTab=tab.dataset.archiveTab;archiveHistoryLimit=100;renderArchiveDetail();$('archiveDetail').querySelector(`[data-archive-tab="${archiveTab}"]`)?.focus({preventScroll:true});return;}if(e.target.closest('#archiveMoreHistory')){archiveHistoryLimit+=100;renderArchiveDetail();return;}if(e.target.closest('#archiveCopyGene')){const r=creatureRecords.get(archiveSelectedId);if(!r)return;const text=formatGeneReport(decode(r.gene));try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);else{const el=document.createElement('textarea');el.value=text;document.body.appendChild(el);el.select();document.execCommand('copy');el.remove();}e.target.textContent='已複製';}catch{e.target.textContent='無法自動複製';}}});
 function sync(){ $('living').textContent=world.length;$('foodCount').textContent=foods.length;$('births').textContent=totalBorn;$('quickLiving').textContent=world.length;$('quickFood').textContent=foods.length;$('quickBirths').textContent=totalBorn;syncArchive();const c=world.find(c=>c.id===selected);$('tabSelected').disabled=$('inspectSelectedBtn').disabled=!c;if(!c&&inspectMode==='selected'){inspectMode='input';updateInspector();}if(!c){$('selectedInfo').innerHTML='<span class="empty">點選生物查看牠的基因與生命狀態。</span>';return;}const e=clamp((c.energy+2.45)/6.05*100,0,100);$('selectedInfo').innerHTML=`<div class="selected-grid"><div><span>編號／世代</span><br><strong>#${c.id}／第 ${c.gen} 代</strong></div><div><span>主要輪廓</span><br><strong>${MORPHS[c.g.morph]}</strong></div><div><span>年齡／壽命</span><br><strong>${Math.floor(c.age)}／${c.life} 秒</strong></div><div><span>速度／移動倍率</span><br><strong>${c.g.speed.toFixed(0)}／${formatNum(c.g.motion)}</strong></div></div><div class="selected-gene">${escapeHTML(c.text)}</div><div class="desc">能量：${formatNum(c.energy)}，${c.repCD<=0?'具備交配條件':'繁殖冷卻中'}。</div><div class="energy"><div style="width:${e}%"></div></div>`;}
 function currentInspection(){const c=world.find(c=>c.id===selected);if(inspectMode==='selected'&&c)return {data:c.data,id:c.id,mode:'selected'};return {data:decode($('geneText').value),id:null,mode:'input'};}
 function updateInspector(){const x=currentInspection(),{data}=x;preview=x;const {g,trace,origins,chars}=data;const none=!chars.length;$('tabInput').setAttribute('aria-pressed',String(x.mode==='input'));$('tabSelected').setAttribute('aria-pressed',String(x.mode==='selected'));$('previewName').textContent=none?'尚無可解析基因':`${MORPHS[g.morph]} · ${x.mode==='input'?'文字預覽':'生物 #'+x.id}`;$('previewText').textContent=none?'':`${chars.join('')}（${chars.length} 個有效字元）`;$('traceCount').textContent=`${trace.length} 個有效字元`;const grid=$('traitGrid');grid.innerHTML=KEYS.map((k,i)=>`<div class="trait ${focusTrait===i?'focus':''}" data-trait="${i}"><div class="name">${String(i+1).padStart(2,'0')}　${NAMES[i]}</div><div class="value">${none?'尚無':escapeHTML(valueFor(g,i))}</div><div class="origin">${none?'預設值':origins[i].length?'第 '+origins[i].join('、')+' 位':'缺少對應位，採預設值'}</div></div>`).join('');$('traceBody').innerHTML=trace.length?trace.map(row=>`<tr data-trait="${row.slot}" class="${focusTrait===row.slot?'focusrow':''}"><td class="mono">${row.position}${row.cycle?'（修飾）':''}</td><td class="mono">${escapeHTML(row.ch)} / ${row.code}</td><td>${NAMES[row.slot]}</td><td>${escapeHTML(row.effect)}</td></tr>`).join(''):'<tr><td colspan="4" class="muted">無有效 ASCII 字元。請輸入基因。</td></tr>';
@@ -453,7 +499,7 @@ const invalid=Array.from($('geneText').value).filter(c=>!(c.charCodeAt(0)>=33&&c
 $('copyGenetics').disabled=none;}
 function formatGeneReport(data){const rows=[`基因：${data.chars.join('')}`,`有效字元：${data.chars.length}`, ...KEYS.map((key,i)=>`${NAMES[i]}：${valueFor(data.g,i)}；來源：${data.origins[i].join(',')||'預設'}`),'','逐字對照',...data.trace.map(r=>`${r.position}. ${r.ch} (ASCII ${r.code}) → ${NAMES[r.slot]}：${r.effect}`)];return rows.join('\n');}
 function report(){return formatGeneReport(currentInspection().data);}
-function reset(mode=$('startMode').value){closeSpecimenDetail();world=[];foods=[];particles=[];creatureRecords.clear();lifeEvents=[];nextEventId=1;selected=null;archiveSelectedId=null;archiveTab='status';archiveHistoryLimit=100;archiveDirty=true;drag=null;simTime=0;uiClock=0;autoClock=0;totalBorn=0;nextId=1;$('eventLog').textContent='';resetGlobalHistory();if(mode==='demo'){const samples=['AqMZkyLpRST','BpNQrwLoSMT','CzWQrsHpTUV'];birth(samples[0],W*.26,H*.39,1,{origin:'demo'});birth(samples[1],W*.67,H*.60,1,{origin:'demo'});birth(samples[2],W*.53,H*.30,1,{origin:'demo'});randomFeed(24);log('示範生態載入完成。');}else{log('已完全清空養殖箱，從 0 隻生物開始。');}inspectMode='input';focusTrait=-1;sync();updateInspector();}
+function reset(mode=$('startMode').value){closeSpecimenDetail();$('archivePanel').classList.remove('desktop-detail-open','tablet-detail-open');world=[];foods=[];particles=[];creatureRecords.clear();lifeEvents=[];nextEventId=1;selected=null;archiveSelectedId=null;archiveTab='status';archiveHistoryLimit=100;archiveDirty=true;drag=null;simTime=0;uiClock=0;autoClock=0;totalBorn=0;nextId=1;$('eventLog').textContent='';resetGlobalHistory();if(mode==='demo'){const samples=['AqMZkyLpRST','BpNQrwLoSMT','CzWQrsHpTUV'];birth(samples[0],W*.26,H*.39,1,{origin:'demo'});birth(samples[1],W*.67,H*.60,1,{origin:'demo'});birth(samples[2],W*.53,H*.30,1,{origin:'demo'});randomFeed(24);log('示範生態載入完成。');}else{log('已完全清空養殖箱，從 0 隻生物開始。');}inspectMode='input';focusTrait=-1;sync();updateInspector();}
 let archivePortraitStamp=0;
 function loop(now){const dt=clamp((now-lastStamp)/1000,0,.045);lastStamp=now;if(!paused)update(dt*speed);render();if(archiveTab==='status'&&archiveSelectedId!==null&&now-archivePortraitStamp>=90){archivePortraitStamp=now;drawArchiveSpecimen();}
 requestAnimationFrame(loop);}
