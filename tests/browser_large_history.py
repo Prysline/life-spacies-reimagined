@@ -127,6 +127,10 @@ class LargeHistoryBrowserRegression(unittest.TestCase):
         self.assertTrue(result)
         self.assertEqual(self.record_count(),100)
         self.assertEqual(self.info()['events'],9801)
+        self.page.locator('#archiveSort').select_option('energy')
+        first=self.page.locator('#archiveList [data-open-creature]').first.element_handle()
+        self.page.evaluate('window.__loadTest.addMeal(1)')
+        self.assertNotEqual(first,self.page.locator('#archiveList [data-open-creature]').first.element_handle())
 
     def test_selected_life_record_updates_without_losing_full_history(self):
         self.page.locator('#archiveSearch').fill('#1')
