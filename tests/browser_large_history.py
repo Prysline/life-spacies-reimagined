@@ -150,6 +150,9 @@ class LargeHistoryBrowserRegression(unittest.TestCase):
         self.assertIn('第 1 / 56 頁',self.page.locator('#historyPage').inner_text())
         self.page.locator('#historyNext').click()
         self.assertIn('第 2 / 56 頁',self.page.locator('#historyPage').inner_text())
+        self.assertTrue(self.page.locator('#historyList').evaluate('(e)=>e.scrollHeight>e.clientHeight'))
+        self.page.locator('#historyList').evaluate('(e)=>e.scrollTop=e.scrollHeight')
+        self.assertGreater(self.page.locator('#historyList').evaluate('(e)=>e.scrollTop'),0)
 
     def test_stress_scrolling_archive_history_and_reset(self):
         for width in [320,390,768,1024,1440]:
@@ -157,6 +160,9 @@ class LargeHistoryBrowserRegression(unittest.TestCase):
                 self.page.set_viewport_size({'width':width,'height':820})
                 self.assertLessEqual(self.page.evaluate('document.documentElement.scrollWidth'),width+1)
                 self.assertEqual(self.record_count(),100)
+                self.assertTrue(self.page.locator('#archiveList').evaluate('(e)=>e.scrollHeight>e.clientHeight'))
+                self.page.locator('#archiveList').evaluate('(e)=>e.scrollTop=e.scrollHeight')
+                self.assertGreater(self.page.locator('#archiveList').evaluate('(e)=>e.scrollTop'),0)
         self.page.evaluate('window.__loadTest.reset()')
         self.assertEqual(self.record_count(),0)
         self.assertEqual(self.page.locator('#archiveMore').count(),0)
